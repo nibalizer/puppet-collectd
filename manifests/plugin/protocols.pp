@@ -1,18 +1,13 @@
 # See http://collectd.org/documentation/manpages/collectd.conf.5.shtml#plugin_protocols
 class collectd::plugin::protocols (
-  $ensure           = present,
-  $ignoreselected   = false,
-  $values            = []
+  $ensure                 = 'present',
+  Boolean $ignoreselected = false,
+  Array $values           = []
 ) {
 
-  validate_array(
-    $values,
-  )
-  validate_bool(
-    $ignoreselected,
-  )
+  include ::collectd
 
-  collectd::plugin {'protocols':
+  collectd::plugin { 'protocols':
     ensure  => $ensure,
     content => template('collectd/plugin/protocols.conf.erb'),
   }

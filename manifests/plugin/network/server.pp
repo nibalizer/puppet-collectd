@@ -1,25 +1,25 @@
 #
 define collectd::plugin::network::server (
-  $ensure        = 'present',
-  $username      = undef,
-  $password      = undef,
-  $port          = undef,
-  $securitylevel = undef,
-  $interface     = undef,
-  $forward       = undef,
+  $ensure          = 'present',
+  $username        = undef,
+  $password        = undef,
+  $port            = undef,
+  $securitylevel   = undef,
+  $interface       = undef,
+  $forward         = undef,
+  $resolveinterval = undef,
 ) {
-  include collectd::params
-  include collectd::plugin::network
 
-  $conf_dir = $collectd::params::plugin_conf_dir
+  include ::collectd
+  include ::collectd::plugin::network
 
-  validate_string($name)
+  $conf_dir = $::collectd::plugin_conf_dir
 
   file { "${conf_dir}/network-server-${name}.conf":
     ensure  => $ensure,
     mode    => '0640',
     owner   => 'root',
-    group   => $collectd::params::root_group,
+    group   => $::collectd::root_group,
     content => template('collectd/plugin/network/server.conf.erb'),
     notify  => Service['collectd'],
   }

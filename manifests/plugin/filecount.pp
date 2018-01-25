@@ -1,10 +1,11 @@
 # https://collectd.org/wiki/index.php/Plugin:FileCount
 class collectd::plugin::filecount (
-  $ensure      = present,
-  $directories = {},
-  $interval    = undef,
+  $ensure           = 'present',
+  Hash $directories = {},
+  $interval         = undef,
 ) {
-  validate_hash($directories)
+
+  include ::collectd
 
   # We support two formats for directories:
   #  - new: hash for create_resources collectd::plugin::filecount::directory
@@ -17,7 +18,7 @@ class collectd::plugin::filecount (
     $content = template('collectd/plugin/filecount.conf.erb')
   }
 
-  collectd::plugin {'filecount':
+  collectd::plugin { 'filecount':
     ensure   => $ensure,
     content  => $content,
     interval => $interval,

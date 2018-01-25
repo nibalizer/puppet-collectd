@@ -1,43 +1,38 @@
 # See http://collectd.org/documentation/manpages/collectd.conf.5.shtml#plugin_processes
 class collectd::plugin::processes (
-  $ensure          = present,
-  $order           = 10,
-  $interval        = undef,
-  $processes       = undef,
-  $process_matches = undef,
+  $ensure                          = 'present',
+  $order                           = 10,
+  $interval                        = undef,
+  Optional[Array] $processes       = undef,
+  Optional[Array] $process_matches = undef,
 ) {
-  if $processes { validate_array($processes) }
-  if $process_matches { validate_array($process_matches) }
 
-  include collectd::params
+  include ::collectd
 
-  collectd::plugin {'processes':
+  collectd::plugin { 'processes':
     ensure   => $ensure,
     order    => $order,
     interval => $interval,
   }
 
-  concat{"${collectd::params::plugin_conf_dir}/processes-config.conf":
+  concat { "${collectd::plugin_conf_dir}/processes-config.conf":
     ensure         => $ensure,
     mode           => '0640',
     owner          => 'root',
-    group          => $collectd::params::root_group,
+    group          => $collectd::root_group,
     notify         => Service['collectd'],
     ensure_newline => true,
   }
-  concat::fragment{'collectd_plugin_processes_conf_header':
-    ensure  => $ensure,
+  concat::fragment { 'collectd_plugin_processes_conf_header':
     order   => '00',
     content => '<Plugin processes>',
-    target  => "${collectd::params::plugin_conf_dir}/processes-config.conf",
+    target  => "${collectd::plugin_conf_dir}/processes-config.conf",
   }
-  concat::fragment{'collectd_plugin_processes_conf_footer':
-    ensure  => $ensure,
+  concat::fragment { 'collectd_plugin_processes_conf_footer':
     order   => '99',
     content => '</Plugin>',
-    target  => "${collectd::params::plugin_conf_dir}/processes-config.conf",
+    target  => "${collectd::plugin_conf_dir}/processes-config.conf",
   }
-
 
   if $processes {
     collectd::plugin::processes::process { $processes : }
@@ -51,5 +46,4 @@ class collectd::plugin::processes (
       $defaults
     )
   }
-
 }

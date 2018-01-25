@@ -2,21 +2,42 @@
 define collectd::plugin::curl_json (
   $url,
   $instance,
-  $keys,
-  $ensure   = present,
-  $user     = undef,
-  $password = undef,
-  $order = '10',
+  Hash $keys,
+  $ensure         = 'present',
+  $host           = undef,
+  $interval       = undef,
+  $user           = undef,
+  $password       = undef,
+  $digest         = undef,
+  $verifypeer     = undef,
+  $verifyhost     = undef,
+  $cacert         = undef,
+  $header         = undef,
+  $post           = undef,
+  $timeout        = undef,
+  $order          = '10',
+  $manage_package = undef,
 ) {
 
-  include collectd::params
-  validate_hash($keys)
+  include ::collectd
 
-  if $::osfamily == 'Redhat' {
-    ensure_packages('collectd-curl_json')
+  $_manage_package = pick($manage_package, $::collectd::manage_package)
+
+  if $_manage_package {
+    if $facts['os']['family'] == 'Debian' {
+      $libyajl_package = $facts['os']['distro']['codename'] ? {
+        'precise' => 'libyajl1',
+        default   => 'libyajl2'
+      }
+      ensure_packages($libyajl_package)
+    }
+
+    if $facts['os']['family'] == 'RedHat' {
+      ensure_packages('collectd-curl_json')
+    }
   }
 
-  $conf_dir = $collectd::params::plugin_conf_dir
+  $conf_dir = $collectd::plugin_conf_dir
 
   # This is deprecated file naming ensuring old style file removed, and should be removed in next major relese
   file { "${name}.load-deprecated":
@@ -29,7 +50,7 @@ define collectd::plugin::curl_json (
     "${name}.load":
       path    => "${conf_dir}/${order}-${name}.conf",
       owner   => 'root',
-      group   => $collectd::params::root_group,
+      group   => $collectd::root_group,
       mode    => '0640',
       content => template('collectd/curl_json.conf.erb'),
       notify  => Service['collectd'],

@@ -1,36 +1,28 @@
 #
 define collectd::plugin::mysql::database (
-  $ensure      = 'present',
-  $database    = $name,
-  $host        = 'UNSET',
-  $username    = 'UNSET',
-  $password    = 'UNSET',
-  $port        = '3306',
-  $masterstats = false,
-  $slavestats  = false,
-  $socket      = undef,
+  Enum['present', 'absent'] $ensure    = 'present',
+  String $database                     = $name,
+  String $host                         = 'UNSET',
+  String $username                     = 'UNSET',
+  String $password                     = 'UNSET',
+  String $port                         = '3306',
+  Boolean $masterstats                 = false,
+  Boolean $slavestats                  = false,
+  Optional[String] $socket             = undef,
+  Optional[Boolean] $innodbstats       = undef,
+  Optional[String] $slavenotifications = undef,
+  Optional[Boolean] $wsrepstats        = undef,
 ) {
-  include collectd::params
-  include collectd::plugin::mysql
 
-  $conf_dir = $collectd::params::plugin_conf_dir
-
-  validate_string($database, $host, $username, $password, $port)
-  validate_bool($masterstats, $slavestats)
-  if $socket {
-    validate_string($socket)
-  }
-
-  if ($masterstats == true and $slavestats == true) {
-    fail('master and slave statistics are mutually exclusive.')
-  }
+  include ::collectd
+  include ::collectd::plugin::mysql
 
   file { "${name}.conf":
     ensure  => $ensure,
-    path    => "${conf_dir}/mysql-${name}.conf",
+    path    => "${collectd::plugin_conf_dir}/mysql-${name}.conf",
     mode    => '0640',
     owner   => 'root',
-    group   => $collectd::params::root_group,
+    group   => $collectd::root_group,
     content => template('collectd/mysql-database.conf.erb'),
     notify  => Service['collectd'],
   }

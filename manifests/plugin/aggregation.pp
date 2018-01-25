@@ -1,16 +1,20 @@
-#
+# collectd::plugin::aggregation
 class collectd::plugin::aggregation (
-  $ensure      = present,
+  $ensure      = 'present',
   $interval    = undef,
   $aggregators = { },
 ) {
 
-  collectd::plugin {'aggregation':
+  include ::collectd
+
+  collectd::plugin { 'aggregation':
     ensure   => $ensure,
     interval => $interval,
   }
+
   $defaults = {
-    'ensure' => $ensure
+    'ensure' => $ensure,
   }
+
   create_resources(collectd::plugin::aggregation::aggregator, $aggregators, $defaults)
 }

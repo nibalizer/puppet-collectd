@@ -1,21 +1,16 @@
 # https://collectd.org/wiki/index.php/Plugin:TCPConns
 class collectd::plugin::tcpconns (
-  $localports  = undef,
-  $remoteports = undef,
-  $listening   = undef,
-  $interval    = undef,
-  $ensure      = present
+  Optional[Array] $localports        = undef,
+  Optional[Array] $remoteports       = undef,
+  $listening                         = undef,
+  $interval                          = undef,
+  Optional[Boolean] $allportssummary = undef,
+  $ensure                            = 'present'
 ) {
 
-  if $localports {
-    validate_array($localports)
-  }
+  include ::collectd
 
-  if $remoteports {
-    validate_array($remoteports)
-  }
-
-  collectd::plugin {'tcpconns':
+  collectd::plugin { 'tcpconns':
     ensure   => $ensure,
     content  => template('collectd/plugin/tcpconns.conf.erb'),
     interval => $interval,

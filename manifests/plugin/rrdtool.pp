@@ -1,55 +1,31 @@
 # https://collectd.org/wiki/index.php/Plugin:RRDtool
 class collectd::plugin::rrdtool (
-  $ensure           = present,
-  $datadir          = '/var/lib/collectd/rrd',
-  $createfilesasync = false,
-  $interval         = undef,
-  $rrarows          = 1200,
-  $rratimespan      = [3600, 86400, 604800, 2678400, 31622400],
-  $xff              = 0.1,
-  $cacheflush       = 900,
-  $cachetimeout     = 120,
-  $writespersecond  = 50
+  $ensure                            = 'present',
+  $manage_package                    = undef,
+  Stdlib::Absolutepath $datadir      = '/var/lib/collectd/rrd',
+  Boolean $createfilesasync          = false,
+  $interval                          = undef,
+  Optional[Integer] $rrarows         = 1200,
+  Array[Integer] $rratimespan        = [3600, 86400, 604800, 2678400, 31622400],
+  Optional[Float] $xff               = 0.1,
+  Optional[Integer] $cacheflush      = 900,
+  Optional[Integer] $cachetimeout    = 120,
+  Optional[Integer] $writespersecond = 50
 ) {
-  validate_string(
-    $datadir
-  )
 
-  validate_bool(
-    $createfilesasync
-  )
+  include ::collectd
 
-  if $rrarows and ! is_integer($rrarows) {
-    fail('rrarows must be an integer!')
-  }
+  $_manage_package = pick($manage_package, $::collectd::manage_package)
 
-  validate_array(
-    $rratimespan
-  )
-
-  if $xff and ! is_float($xff) {
-    fail('xff must be a float!')
-  }
-
-  if $cacheflush and ! is_integer($cacheflush) {
-    fail('cacheflush must be an integer!')
-  }
-
-  if $cachetimeout and ! is_integer($cachetimeout) {
-    fail('cachetimeout must be an integer!')
-  }
-
-  if $writespersecond and ! is_integer($writespersecond) {
-    fail('writespersecond must be an integer!')
-  }
-
-  if $::osfamily == 'RedHat' {
-    package { 'collectd-rrdtool':
-      ensure => $ensure,
+  if $facts['os']['family'] == 'RedHat' {
+    if $_manage_package {
+      package { 'collectd-rrdtool':
+        ensure => $ensure,
+      }
     }
   }
 
-  collectd::plugin {'rrdtool':
+  collectd::plugin { 'rrdtool':
     ensure   => $ensure,
     content  => template('collectd/plugin/rrdtool.conf.erb'),
     interval => $interval,
